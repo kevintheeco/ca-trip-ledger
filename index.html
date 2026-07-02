@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>캘리포니아 여행 정산 · CA Trip Ledger</title>
+<meta name="theme-color" content="#1C2B24" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --pine:#1C2B24;
+    --pine-2:#243830;
+    --sand:#F2E9D8;
+    --cream:#FBF6EC;
+    --clay:#C1502E;
+    --sage:#4A7A64;
+    --gold:#E8B23D;
+    --line:rgba(28,43,36,.14);
+    --shadow:0 1px 0 rgba(28,43,36,.06), 0 12px 30px -18px rgba(28,43,36,.4);
+    --serif:"Fraunces", Georgia, serif;
+    --sans:"IBM Plex Sans KR", system-ui, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--cream);color:var(--pine);font-family:var(--sans);-webkit-text-size-adjust:100%;}
+  body{line-height:1.5;padding-bottom:env(safe-area-inset-bottom);}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input,select{font-family:inherit;font-size:16px;color:var(--pine);}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px 120px;}
+  .hidden{display:none !important;}
+
+  /* ---------- Signage header ---------- */
+  header.sign{
+    background:var(--pine);
+    color:var(--sand);
+    border-bottom:4px solid var(--gold);
+    padding:18px 16px 16px;
+  }
+  .sign-inner{max-width:640px;margin:0 auto;}
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;
+    border:2px solid var(--gold);color:var(--gold);
+    border-radius:999px;padding:3px 11px;font-size:12px;letter-spacing:.14em;
+    font-weight:700;text-transform:uppercase;
+  }
+  .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);}
+  h1.title{
+    font-family:var(--serif);font-weight:600;font-size:27px;line-height:1.12;
+    margin:12px 0 2px;letter-spacing:-.01em;
+  }
+  h1.title em{color:var(--gold);font-style:normal;}
+  .route{
+    margin-top:11px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;
+    font-size:12.5px;font-weight:500;color:#d9cfb8;
+  }
+  .route .stop{white-space:nowrap;}
+  .route .dot{color:var(--gold);font-weight:700;}
+  .toolbar{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
+  .toolbar button{
+    font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;
+    background:rgba(242,233,216,.1);color:var(--sand);border:1px solid rgba(242,233,216,.25);
+  }
+  .toolbar button:active{transform:translateY(1px);}
+  .sync-pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#c9bfa8;}
+  .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);transition:background .3s;}
+  .sync-dot.syncing{background:var(--gold);}
+  .sync-dot.err{background:var(--clay);}
+  .sync-dot.off{background:#6c6c6c;}
+
+  /* ---------- Settlement summary (top) ---------- */
+  .summary{
+    background:var(--pine-2);color:var(--sand);
+    border-radius:16px;padding:18px 18px 20px;margin-top:16px;
+    box-shadow:var(--shadow);
+  }
+  .summary .cap{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .verdict{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.3;margin:8px 0 2px;}
+  .verdict.settled{color:var(--sage);}
+  .verdict b{color:var(--gold);font-family:var(--mono);font-weight:600;}
+  .total-line{font-size:13.5px;color:#cfc6b0;margin-top:6px;}
+  .total-line b{color:var(--sand);}
+
+  /* gauge */
+  .gauge{margin:16px 0 4px;}
+  .gauge-labels{display:flex;justify-content:space-between;font-size:11.5px;color:#b9af98;margin-bottom:5px;}
+  .gauge-track{
+    position:relative;height:14px;border-radius:999px;
+    background:linear-gradient(90deg,var(--sage) 0%, rgba(242,233,216,.25) 50%, var(--clay) 100%);
+    border:1px solid rgba(242,233,216,.2);
+  }
+  .gauge-center{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:rgba(242,233,216,.5);transform:translateX(-1px);}
+  .gauge-marker{
+    position:absolute;top:50%;width:20px;height:20px;border-radius:50%;
+    background:var(--gold);border:3px solid var(--pine-2);
+    transform:translate(-50%,-50%);transition:left .4s cubic-bezier(.4,1.2,.5,1);
+    box-shadow:0 2px 8px rgba(0,0,0,.35);
+  }
+
+  .persons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+  .person{background:rgba(242,233,216,.07);border:1px solid rgba(242,233,216,.14);border-radius:12px;padding:11px 12px;}
+  .person h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .person h4 .chip{width:9px;height:9px;border-radius:50%;}
+  .chip.sumin{background:var(--gold);}
+  .chip.seungyeon{background:var(--sage);}
+  .person .row{display:flex;justify-content:space-between;font-size:12px;margin-top:7px;color:#c9bfa8;}
+  .person .row .mono{color:var(--sand);font-size:12.5px;}
+
+  /* ---------- Cards / sections ---------- */
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin:26px 2px 10px;}
+  .section-head h3{font-family:var(--serif);font-weight:600;font-size:17px;}
+  .rate-card{
+    display:flex;align-items:center;gap:12px;background:var(--sand);
+    border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:16px;
+  }
+  .rate-card label{font-size:13px;font-weight:700;flex:1;}
+  .rate-card label span{display:block;font-weight:400;font-size:11.5px;color:#6b6152;margin-top:1px;}
+  .rate-input{display:flex;align-items:center;gap:6px;background:var(--cream);border:1.5px solid var(--line);border-radius:9px;padding:6px 10px;}
+  .rate-input span{font-size:12px;color:#6b6152;font-weight:600;}
+  .rate-input input{width:78px;border:none;background:none;text-align:right;font-family:var(--mono);font-weight:600;font-size:15px;}
+  .rate-input input:focus{outline:none;}
+
+  .add-btn{
+    width:100%;background:var(--clay);color:#fff;font-weight:700;font-size:15px;
+    padding:15px;border-radius:13px;margin-top:14px;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .add-btn:active{transform:translateY(1px);}
+
+  /* expense list */
+  .day-group{margin-top:22px;}
+  .day-head{display:flex;align-items:baseline;gap:9px;margin:0 2px 9px;}
+  .day-head .date{font-family:var(--serif);font-weight:600;font-size:15px;}
+  .day-head .dow{font-size:12px;color:#8a8070;}
+  .day-head .day-sum{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:#8a8070;}
+  .exp{
+    display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:12px 13px;margin-bottom:9px;box-shadow:var(--shadow);
+    transition:transform .08s;
+  }
+  .exp:active{transform:scale(.995);}
+  .exp .cat-ic{
+    width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;
+    font-size:18px;background:var(--sand);
+  }
+  .exp .mid{flex:1;min-width:0;cursor:pointer;}
+  .exp .mid .nm{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .exp .mid .meta{font-size:11.5px;color:#8a8070;margin-top:2px;display:flex;flex-wrap:wrap;gap:4px 8px;}
+  .exp .mid .meta .payer{font-weight:600;}
+  .exp .mid .meta .payer.sumin{color:var(--gold);filter:brightness(.7);}
+  .exp .mid .meta .payer.seungyeon{color:var(--sage);}
+  .exp .amt{text-align:right;flex:none;}
+  .exp .amt .krw{font-family:var(--mono);font-weight:600;font-size:14.5px;}
+  .exp .amt .orig{font-size:11px;color:#8a8070;font-family:var(--mono);margin-top:1px;}
+  .exp .del{flex:none;width:30px;height:30px;border-radius:8px;color:#b1a893;font-size:17px;display:grid;place-items:center;}
+  .exp .del:hover{background:#f4ede0;color:var(--clay);}
+
+  .empty{text-align:center;color:#8a8070;padding:38px 20px;border:1.5px dashed var(--line);border-radius:14px;margin-top:16px;}
+  .empty .big{font-size:30px;}
+  .empty p{margin-top:8px;font-size:13.5px;}
+
+  .footer-actions{margin-top:30px;display:flex;justify-content:center;}
+  .reset-btn{color:var(--clay);font-size:13px;font-weight:600;padding:8px 14px;border-radius:8px;border:1px solid rgba(193,80,46,.3);}
+  .reset-btn:hover{background:rgba(193,80,46,.07);}
+
+  /* ---------- Modal / setup ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(28,43,36,.55);backdrop-filter:blur(3px);
+    display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0;
+  }
+  @media(min-width:560px){.overlay{align-items:center;padding:20px;}}
+  .sheet{
+    background:var(--cream);width:100%;max-width:520px;border-radius:20px 20px 0 0;
+    padding:20px 20px 26px;max-height:92vh;overflow-y:auto;
+    box-shadow:0 -10px 40px rgba(0,0,0,.3);
+  }
+  @media(min-width:560px){.sheet{border-radius:20px;}}
+  .sheet h2{font-family:var(--serif);font-weight:600;font-size:21px;margin-bottom:3px;}
+  .sheet .sub{font-size:13px;color:#6b6152;margin-bottom:18px;}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .field input,.field select{
+    width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:11px;
+    background:#fff;font-size:15px;
+  }
+  .field input:focus,.field select:focus{outline:none;border-color:var(--sage);}
+  .field .hint{font-size:11.5px;color:#8a8070;margin-top:5px;}
+  .field .hint a{color:var(--clay);font-weight:600;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .amount-row{display:grid;grid-template-columns:1fr 96px;gap:10px;}
+
+  /* segmented control */
+  .seg{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg button{
+    border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;
+    background:#fff;color:#6b6152;flex:1;min-width:fit-content;
+  }
+  .seg button.on{background:var(--pine);color:var(--sand);border-color:var(--pine);}
+  .seg.payers button.on.sumin{background:var(--gold);color:var(--pine);border-color:var(--gold);}
+  .seg.payers button.on.seungyeon{background:var(--sage);color:#fff;border-color:var(--sage);}
+
+  /* split slider */
+  .split-vals{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:8px;}
+  .split-vals .s{color:var(--gold);filter:brightness(.7);}
+  .split-vals .y{color:var(--sage);}
+  input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:10px;border-radius:999px;background:linear-gradient(90deg,var(--gold) 0 50%, var(--sage) 50% 100%);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--pine);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--pine);cursor:pointer;}
+  .split-quick{display:flex;gap:6px;margin-top:9px;}
+  .split-quick button{flex:1;font-size:12px;font-weight:600;padding:6px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#6b6152;}
+
+  .sheet-actions{display:flex;gap:10px;margin-top:22px;}
+  .btn-primary{flex:2;background:var(--clay);color:#fff;font-weight:700;font-size:15px;padding:14px;border-radius:12px;}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-ghost{flex:1;background:var(--sand);color:var(--pine);font-weight:600;font-size:15px;padding:14px;border-radius:12px;border:1px solid var(--line);}
+  .btn-danger-text{margin-top:14px;width:100%;text-align:center;color:var(--clay);font-size:13px;font-weight:600;padding:8px;}
+
+  /* toast */
+  #toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--pine);color:var(--sand);padding:12px 18px;border-radius:12px;
+    font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);
+    opacity:0;pointer-events:none;transition:.28s;z-index:80;max-width:90vw;text-align:center;
+    border-left:4px solid var(--gold);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="sign">
+  <div class="sign-inner">
+    <span class="badge">California Road Trip · 2026</span>
+    <h1 class="title">캘리포니아 여행 <em>정산 장부</em></h1>
+    <div class="route" id="routeLine">
+      <span class="stop">SF</span><span class="dot">·</span>
+      <span class="stop">요세미티</span><span class="dot">·</span>
+      <span class="stop">라스베가스</span><span class="dot">·</span>
+      <span class="stop">그랜드캐니언</span>
+    </div>
+    <div class="toolbar">
+      <button id="btnCopy">📋 카톡 공유용 복사</button>
+      <button id="btnSettings">⚙️ 설정</button>
+      <span class="sync-pill"><span class="sync-dot" id="syncDot"></span><span id="syncTxt">연결 중…</span></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== Settlement summary ===== -->
+  <section class="summary" id="summary">
+    <div class="cap">실시간 정산</div>
+    <div class="verdict" id="verdict">기록을 추가하면 정산 결과가 나와요.</div>
+    <div class="total-line" id="totalLine"></div>
+
+    <div class="gauge">
+      <div class="gauge-labels"><span>← 승연이 더 냄</span><span>수민이 더 냄 →</span></div>
+      <div class="gauge-track">
+        <div class="gauge-center"></div>
+        <div class="gauge-marker" id="gaugeMarker" style="left:50%"></div>
+      </div>
+    </div>
+
+    <div class="persons">
+      <div class="person">
+        <h4><span class="chip sumin"></span>수민</h4>
+        <div class="row"><span>결제한 돈</span><span class="mono" id="paidSumin">₩0</span></div>
+        <div class="row"><span>부담할 몫</span><span class="mono" id="owedSumin">₩0</span></div>
+      </div>
+      <div class="person">
+        <h4><span class="chip seungyeon"></span>승연</h4>
+        <div class="row"><span>결제한 돈</span><span class="mono" id="paidSeungyeon">₩0</span></div>
+        <div class="row"><span>부담할 몫</span><span class="mono" id="owedSeungyeon">₩0</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Rate ===== -->
+  <div class="rate-card">
+    <label>적용 환율
+      <span>USD 1달러 = 원 (직접 수정 가능)</span>
+    </label>
+    <div class="rate-input">
+      <span>$1 =</span>
+      <input type="number" id="rateInput" inputmode="decimal" min="1" step="1" value="1400" />
+      <span>₩</span>
+    </div>
+  </div>
+
+  <!-- ===== Add ===== -->
+  <button class="add-btn" id="btnAdd">＋ 지출 항목 추가</button>
+
+  <!-- ===== List ===== -->
+  <div class="section-head" id="listHead" style="display:none">
+    <h3>지출 내역</h3>
+    <span class="day-sum" id="itemCount"></span>
+  </div>
+  <div id="list"></div>
+
+  <div class="footer-actions" id="footerActions" style="display:none">
+    <button class="reset-btn" id="btnReset">🗑 전체 기록 초기화</button>
+  </div>
+</main>
+
+<!-- ============ SETUP OVERLAY ============ -->
+<div class="overlay hidden" id="setupOverlay">
+  <div class="sheet">
+    <h2>처음 오셨나요? 🏕️</h2>
+    <p class="sub">두 사람이 함께 쓰려면 공유 데이터 저장소(GitHub Gist)에 연결해야 해요. 한 번만 입력하면 이 기기에 저장됩니다.</p>
+    <div class="field">
+      <label>Gist ID</label>
+      <input id="setupGist" placeholder="예: a1b2c3d4e5f6..." autocomplete="off" spellcheck="false" />
+      <div class="hint">수민이 만든 Gist 주소 <code>gist.github.com/이름/<b>여기부분</b></code> 을 붙여넣으세요.</div>
+    </div>
+    <div class="field">
+      <label>GitHub 토큰 (gist 권한)</label>
+      <input id="setupToken" type="password" placeholder="ghp_ 또는 github_pat_..." autocomplete="off" spellcheck="false" />
+      <div class="hint">토큰 발급: GitHub → Settings → Developer settings → <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">Personal access tokens</a> → <b>gist 권한만 체크</b>. 승연은 수민이 만든 토큰을 그대로 입력하면 됩니다.</div>
+    </div>
+    <div class="field">
+      <label>나는 누구인가요? (내 기본 결제자)</label>
+      <div class="seg payers" id="setupWho">
+        <button data-who="수민">수민</button>
+        <button data-who="승연">승연</button>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-primary" id="setupSave">연결하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EXPENSE MODAL ============ -->
+<div class="overlay hidden" id="expOverlay">
+  <div class="sheet">
+    <h2 id="expTitle">지출 추가</h2>
+    <p class="sub" id="expSub">누가 얼마를 어디에 썼는지 기록해요.</p>
+
+    <div class="grid2">
+      <div class="field">
+        <label>날짜</label>
+        <input type="date" id="fDate" />
+      </div>
+      <div class="field">
+        <label>장소</label>
+        <select id="fPlace">
+          <option>샌프란시스코</option><option>요세미티</option><option>라스베가스</option>
+          <option>그랜드캐니언</option><option>이동중</option><option>기타</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>항목명</label>
+      <input id="fName" placeholder="예: In-N-Out 점심, 호텔 1박" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label>카테고리</label>
+      <select id="fCat">
+        <option>숙소</option><option>교통</option><option>식비</option>
+        <option>입장료·액티비티</option><option>쇼핑</option><option>기타</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>금액</label>
+      <div class="amount-row">
+        <input type="number" id="fAmount" inputmode="decimal" placeholder="0" min="0" step="0.01" />
+        <select id="fCurrency"><option>USD</option><option>KRW</option></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>결제자</label>
+      <div class="seg payers" id="fPayer">
+        <button data-p="수민">수민</button>
+        <button data-p="승연">승연</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>부담 비율</label>
+      <div class="split-vals"><span class="s">수민 <span id="splitS">50</span>%</span><span class="y">승연 <span id="splitY">50</span>%</span></div>
+      <input type="range" id="fSplit" min="0" max="100" step="5" value="50" />
+      <div class="split-quick">
+        <button data-split="50">반반</button>
+        <button data-split="100">수민 전액</button>
+        <button data-split="0">승연 전액</button>
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-ghost" id="expCancel">취소</button>
+      <button class="btn-primary" id="expSave">저장</button>
+    </div>
+    <button class="btn-danger-text hidden" id="expDelete">이 항목 삭제</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   CA Trip Ledger — vanilla JS, GitHub Gist as shared storage
+   ============================================================ */
+const LS = {
+  gist:  "catrip_gist_id",
+  token: "catrip_token",
+  who:   "catrip_who",
+};
+const API = "https://api.github.com/gists/";
+const POLL_MS = 4000;
+const CATEGORIES = {
+  "숙소":"🏨","교통":"🚗","식비":"🍔","입장료·액티비티":"🎟️","쇼핑":"🛍️","기타":"📌"
+};
+const KRW0 = {expenses:[], rate:1400};
+
+/* ---- runtime state ---- */
+let state = structuredClone(KRW0);
+let cfg = { gist:null, token:null, who:"수민" };
+let editingId = null;          // id being edited in modal, null = new
+let modalOpen = false;         // don't let poll clobber while a sheet is open
+let writing = false;           // a PATCH is in flight
+let pollTimer = null;
+let form = null;               // working copy of the expense form
+
+/* ---- tiny helpers ---- */
+const $ = (s)=>document.querySelector(s);
+const el = (id)=>document.getElementById(id);
+const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmtKRW = (n)=> "₩"+Math.round(n).toLocaleString("ko-KR");
+const fmtUSD = (n)=> "$"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function toKRW(e){ return e.currency==="USD" ? e.amount*state.rate : e.amount; }
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+
+let toastT;
+function toast(msg){
+  const t=el("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200);
+}
+function setSync(kind,txt){
+  const d=el("syncDot"); d.className="sync-dot"+(kind?" "+kind:"");
+  el("syncTxt").textContent=txt;
+}
+
+/* ============================================================
+   GITHUB GIST I/O
+   ============================================================ */
+function ghHeaders(){
+  return {
+    "Authorization":"Bearer "+cfg.token,
+    "Accept":"application/vnd.github+json",
+    "X-GitHub-Api-Version":"2022-11-28",
+  };
+}
+async function gistRead(){
+  const r = await fetch(API+cfg.gist,{headers:ghHeaders(),cache:"no-store"});
+  if(!r.ok) throw new Error("read "+r.status);
+  const data = await r.json();
+  const file = pickFile(data);
+  if(!file) return structuredClone(KRW0);
+  try{ return normalize(JSON.parse(file.content)); }
+  catch(e){ return structuredClone(KRW0); }
+}
+function pickFile(gist){
+  const files = gist.files||{};
+  // prefer ledger.json, else the first .json, else the first file
+  if(files["ledger.json"]) return files["ledger.json"];
+  const keys = Object.keys(files);
+  const j = keys.find(k=>k.toLowerCase().endsWith(".json"));
+  return files[j] || files[keys[0]] || null;
+}
+function gistFileName(gist){
+  const files=gist.files||{};
+  if(files["ledger.json"]) return "ledger.json";
+  const keys=Object.keys(files);
+  const j=keys.find(k=>k.toLowerCase().endsWith(".json"));
+  return j || keys[0] || "ledger.json";
+}
+function normalize(obj){
+  const out=structuredClone(KRW0);
+  if(obj && Array.isArray(obj.expenses)) out.expenses=obj.expenses;
+  if(obj && typeof obj.rate==="number" && obj.rate>0) out.rate=obj.rate;
+  return out;
+}
+
+/* Merge-then-write: read latest remote, overlay MY pending changes, PATCH.
+   ops = {upsert:[expense...], remove:[id...], rate:number|undefined} */
+async function gistWrite(ops){
+  if(!cfg.gist||!cfg.token) return;
+  writing = true; setSync("syncing","저장 중…");
+  try{
+    // fetch latest so we don't clobber the other person's concurrent edits
+    const meta = await fetch(API+cfg.gist,{headers:ghHeaders(),cache:"no-store"});
+    if(!meta.ok) throw new Error("meta "+meta.status);
+    const gist = await meta.json();
+    const fname = gistFileName(gist);
+    const file = pickFile(gist);
+    let remote = structuredClone(KRW0);
+    if(file){ try{ remote = normalize(JSON.parse(file.content)); }catch(e){} }
+
+    const map = new Map(remote.expenses.map(e=>[e.id,e]));
+    (ops.upsert||[]).forEach(e=> map.set(e.id,e));
+    (ops.remove||[]).forEach(id=> map.delete(id));
+    const merged = { expenses:[...map.values()], rate: ops.rate!=null ? ops.rate : remote.rate };
+
+    const body = { files:{ [fname]: { content: JSON.stringify(merged,null,2) } } };
+    const r = await fetch(API+cfg.gist,{method:"PATCH",headers:ghHeaders(),body:JSON.stringify(body)});
+    if(!r.ok) throw new Error("write "+r.status);
+
+    state = merged; render();
+    setSync("","동기화됨");
+  }catch(err){
+    setSync("err","저장 실패");
+    toast("저장 실패: "+err.message);
+    console.error(err);
+  }finally{
+    writing=false;
+  }
+}
+
+async function poll(){
+  if(!cfg.gist||!cfg.token) return;
+  if(modalOpen || writing) return;            // don't overwrite while I'm editing / saving
+  try{
+    const remote = await gistRead();
+    if(JSON.stringify(remote)!==JSON.stringify(state)){
+      state = remote;
+      // keep the rate box in sync unless it's focused
+      if(document.activeElement!==el("rateInput")) el("rateInput").value = state.rate;
+      render();
+    }
+    if(!modalOpen && !writing) setSync("","동기화됨");
+  }catch(err){
+    setSync("err","연결 오류");
+  }
+}
+
+/* ============================================================
+   SETTLEMENT MATH
+   ============================================================ */
+function compute(){
+  let total=0, paidS=0, paidY=0, owedS=0, owedY=0;
+  for(const e of state.expenses){
+    const k=toKRW(e); total+=k;
+    if(e.payer==="수민") paidS+=k; else paidY+=k;
+    const s = (e.splitSumin==null?50:e.splitSumin)/100;
+    owedS += k*s; owedY += k*(1-s);
+  }
+  // 수민 net: 낸 돈 - 부담할 몫. 양수면 수민이 더 냈다(=승연이 수민에게 보내야).
+  const netS = paidS - owedS;
+  return {total,paidS,paidY,owedS,owedY,netS};
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  const c = compute();
+
+  // summary text
+  const settleAmt = Math.round(Math.abs(c.netS));
+  const verdict=el("verdict");
+  verdict.className="verdict";
+  if(state.expenses.length===0){
+    verdict.textContent="기록을 추가하면 정산 결과가 나와요.";
+    el("totalLine").textContent="";
+  }else if(settleAmt===0){
+    verdict.classList.add("settled");
+    verdict.textContent="✅ 정확히 반반! 주고받을 금액이 없어요.";
+    el("totalLine").innerHTML=`총 지출 <b>${fmtKRW(c.total)}</b>`;
+  }else{
+    const from = c.netS>0 ? "승연" : "수민";
+    const to   = c.netS>0 ? "수민" : "승연";
+    verdict.innerHTML=`${from}이 ${to}에게 <b>${fmtKRW(settleAmt)}</b> 보내면 정산 끝`;
+    el("totalLine").innerHTML=`총 지출 <b>${fmtKRW(c.total)}</b> · 적용 환율 $1 = ₩${state.rate.toLocaleString()}`;
+  }
+
+  el("paidSumin").textContent=fmtKRW(c.paidS);
+  el("owedSumin").textContent=fmtKRW(c.owedS);
+  el("paidSeungyeon").textContent=fmtKRW(c.paidY);
+  el("owedSeungyeon").textContent=fmtKRW(c.owedY);
+
+  // gauge marker
+  const ratio = c.total>0 ? Math.max(-1,Math.min(1, c.netS/c.total)) : 0;
+  el("gaugeMarker").style.left = (50 + ratio*50) + "%";
+
+  // list grouped by date desc
+  const list=el("list"); list.innerHTML="";
+  const groups={};
+  for(const e of state.expenses){ (groups[e.date] ||= []).push(e); }
+  const dates=Object.keys(groups).sort().reverse();
+
+  const hasItems = state.expenses.length>0;
+  el("listHead").style.display = hasItems?"flex":"none";
+  el("footerActions").style.display = hasItems?"flex":"none";
+  el("itemCount").textContent = hasItems ? state.expenses.length+"건" : "";
+
+  if(!hasItems){
+    list.innerHTML=`<div class="empty"><div class="big">🧭</div><p>아직 기록이 없어요.<br>아래 <b>＋ 지출 항목 추가</b>로 첫 지출을 남겨보세요.</p></div>`;
+    return;
+  }
+
+  for(const d of dates){
+    const items=groups[d];
+    let daySum=items.reduce((s,e)=>s+toKRW(e),0);
+    const g=document.createElement("div"); g.className="day-group";
+    g.innerHTML=`<div class="day-head"><span class="date">${fmtDate(d)}</span><span class="dow">${dow(d)}</span><span class="day-sum">${fmtKRW(daySum)}</span></div>`;
+    for(const e of items){
+      const ic=CATEGORIES[e.category]||"📌";
+      const payerCls = e.payer==="수민"?"sumin":"seungyeon";
+      const orig = e.currency==="USD" ? fmtUSD(e.amount) : "";
+      const splitTxt = (e.splitSumin==null||e.splitSumin===50) ? "반반" : `수민 ${e.splitSumin}%`;
+      const row=document.createElement("div"); row.className="exp";
+      row.innerHTML=`
+        <div class="cat-ic">${ic}</div>
+        <div class="mid" data-edit="${e.id}">
+          <div class="nm">${esc(e.name||e.category)}</div>
+          <div class="meta">
+            <span class="payer ${payerCls}">${e.payer} 결제</span>
+            <span>${e.place}</span><span>${e.category}</span><span>${splitTxt}</span>
+          </div>
+        </div>
+        <div class="amt">
+          <div class="krw">${fmtKRW(toKRW(e))}</div>
+          ${orig?`<div class="orig">${orig}</div>`:""}
+        </div>
+        <button class="del" data-del="${e.id}" aria-label="삭제">✕</button>`;
+      g.appendChild(row);
+    }
+    list.appendChild(g);
+  }
+}
+const DOW=["일","월","화","수","목","금","토"];
+function fmtDate(iso){ const [y,m,d]=iso.split("-"); return `${+m}월 ${+d}일`; }
+function dow(iso){ const dt=new Date(iso+"T00:00:00"); return "("+DOW[dt.getDay()]+")"; }
+function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ============================================================
+   COPY SUMMARY (plain text, accounting style)
+   ============================================================ */
+function summaryText(){
+  const c=compute();
+  const pad=(s)=>s;
+  const L=[];
+  L.push("🏕️ 캘리포니아 여행 정산");
+  L.push("SF · 요세미티 · 라스베가스 · 그랜드캐니언");
+  L.push("────────────────────");
+  L.push("총 지출        "+fmtKRW(c.total));
+  L.push("적용 환율      $1 = ₩"+state.rate.toLocaleString());
+  L.push("────────────────────");
+  L.push("[수민]");
+  L.push("  결제한 돈    "+fmtKRW(c.paidS));
+  L.push("  부담할 몫    "+fmtKRW(c.owedS));
+  L.push("[승연]");
+  L.push("  결제한 돈    "+fmtKRW(c.paidY));
+  L.push("  부담할 몫    "+fmtKRW(c.owedY));
+  L.push("────────────────────");
+  const amt=Math.round(Math.abs(c.netS));
+  if(state.expenses.length===0) L.push("아직 기록이 없어요.");
+  else if(amt===0) L.push("✅ 정확히 반반! 정산 완료.");
+  else{
+    const from=c.netS>0?"승연":"수민", to=c.netS>0?"수민":"승연";
+    L.push(`➡️ ${from} → ${to}  ${fmtKRW(amt)}`);
+    L.push(`   (${from}이 ${to}에게 보내면 정산 끝)`);
+  }
+  return L.join("\n");
+}
+async function copySummary(){
+  const txt=summaryText();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast("정산 요약을 복사했어요 📋");
+  }catch(e){
+    // fallback
+    const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
+    ta.select(); try{document.execCommand("copy"); toast("복사했어요 📋");}catch(_){toast("복사 실패 — 길게 눌러 복사하세요");}
+    document.body.removeChild(ta);
+  }
+}
+
+/* ============================================================
+   EXPENSE MODAL
+   ============================================================ */
+function openExpense(id){
+  editingId = id||null;
+  const e = id ? state.expenses.find(x=>x.id===id) : null;
+  form = e ? structuredClone(e) : {
+    id:uid(), date:todayISO(), place:"샌프란시스코", name:"", category:"식비",
+    payer:cfg.who||"수민", amount:null, currency:"USD", splitSumin:50
+  };
+  el("expTitle").textContent = e?"지출 수정":"지출 추가";
+  el("fDate").value=form.date;
+  el("fPlace").value=form.place;
+  el("fName").value=form.name;
+  el("fCat").value=form.category;
+  el("fAmount").value=form.amount==null?"":form.amount;
+  el("fCurrency").value=form.currency;
+  setSeg("fPayer","p",form.payer);
+  el("fSplit").value=form.splitSumin;
+  updateSplitLabels();
+  el("expDelete").classList.toggle("hidden", !e);
+  showOverlay("expOverlay");
+}
+function readForm(){
+  form.date=el("fDate").value||todayISO();
+  form.place=el("fPlace").value;
+  form.name=el("fName").value.trim();
+  form.category=el("fCat").value;
+  form.amount=parseFloat(el("fAmount").value)||0;
+  form.currency=el("fCurrency").value;
+  form.splitSumin=parseInt(el("fSplit").value,10);
+}
+function saveExpense(){
+  readForm();
+  if(!(form.amount>0)){ toast("금액을 입력해주세요"); el("fAmount").focus(); return; }
+  if(!form.name) form.name=form.category;
+  hideOverlay("expOverlay");
+  gistWrite({upsert:[form]});
+}
+function deleteExpense(){
+  if(!editingId) return;
+  if(!confirm("이 항목을 삭제할까요?")) return;
+  const id=editingId;
+  hideOverlay("expOverlay");
+  gistWrite({remove:[id]});
+}
+function updateSplitLabels(){
+  const v=+el("fSplit").value;
+  el("splitS").textContent=v; el("splitY").textContent=100-v;
+}
+
+/* ============================================================
+   SEGMENTED CONTROLS
+   ============================================================ */
+function setSeg(containerId, attr, val){
+  document.querySelectorAll("#"+containerId+" button").forEach(b=>{
+    const on = b.dataset[attr]===val;
+    b.classList.toggle("on",on);
+    b.classList.toggle("sumin", on && val==="수민");
+    b.classList.toggle("seungyeon", on && val==="승연");
+  });
+}
+
+/* ============================================================
+   OVERLAYS
+   ============================================================ */
+function showOverlay(id){ el(id).classList.remove("hidden"); modalOpen=true; }
+function hideOverlay(id){ el(id).classList.add("hidden"); if(id!=="setupOverlay") modalOpen=false; }
+
+/* ============================================================
+   SETUP
+   ============================================================ */
+function needSetup(){
+  cfg.gist  = localStorage.getItem(LS.gist);
+  cfg.token = localStorage.getItem(LS.token);
+  cfg.who   = localStorage.getItem(LS.who) || "수민";
+  return !cfg.gist || !cfg.token;
+}
+function openSetup(){
+  el("setupGist").value=cfg.gist||"";
+  el("setupToken").value=cfg.token||"";
+  setSeg("setupWho","who",cfg.who||"수민");
+  el("setupOverlay").classList.remove("hidden"); modalOpen=true;
+}
+function parseGistId(v){
+  v=v.trim();
+  const m=v.match(/([0-9a-f]{20,})/i);   // pull hex id out of a full URL if pasted
+  return m?m[1]:v;
+}
+async function saveSetup(){
+  const gid=parseGistId(el("setupGist").value);
+  const tok=el("setupToken").value.trim();
+  const who=document.querySelector("#setupWho button.on")?.dataset.who || "수민";
+  if(!gid){ toast("Gist ID를 입력해주세요"); return; }
+  if(!tok){ toast("토큰을 입력해주세요"); return; }
+  cfg={gist:gid,token:tok,who};
+  // verify connection
+  setSync("syncing","확인 중…");
+  try{
+    const r=await fetch(API+gid,{headers:ghHeaders(),cache:"no-store"});
+    if(!r.ok) throw new Error(r.status===404?"Gist를 찾을 수 없어요 (ID 확인)":r.status===401?"토큰이 올바르지 않아요":"오류 "+r.status);
+  }catch(err){ setSync("err","연결 실패"); toast(err.message); return; }
+  localStorage.setItem(LS.gist,gid);
+  localStorage.setItem(LS.token,tok);
+  localStorage.setItem(LS.who,who);
+  el("setupOverlay").classList.add("hidden"); modalOpen=false;
+  toast("연결됐어요! 함께 기록해요 🚐");
+  start();
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function resetAll(){
+  if(!confirm("모든 지출 기록을 삭제할까요?\n(환율 설정은 유지됩니다. 되돌릴 수 없어요.)")) return;
+  gistWrite({upsert:[], remove: state.expenses.map(e=>e.id)});
+}
+
+/* ============================================================
+   RATE
+   ============================================================ */
+let rateT;
+function onRateChange(){
+  const v=parseFloat(el("rateInput").value);
+  if(!(v>0)) return;
+  clearTimeout(rateT);
+  rateT=setTimeout(()=>{ gistWrite({rate:v}); },600);
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function bindEvents(){
+  el("btnAdd").onclick=()=>openExpense(null);
+  el("btnCopy").onclick=copySummary;
+  el("btnSettings").onclick=openSetup;
+  el("btnReset").onclick=resetAll;
+  el("rateInput").addEventListener("input",onRateChange);
+
+  // expense modal
+  el("expCancel").onclick=()=>hideOverlay("expOverlay");
+  el("expSave").onclick=saveExpense;
+  el("expDelete").onclick=deleteExpense;
+  el("fSplit").addEventListener("input",updateSplitLabels);
+  document.querySelectorAll("#fPayer button").forEach(b=>b.onclick=()=>setSeg("fPayer","p",b.dataset.p));
+  document.querySelectorAll(".split-quick button").forEach(b=>b.onclick=()=>{ el("fSplit").value=b.dataset.split; updateSplitLabels(); });
+
+  // setup
+  el("setupSave").onclick=saveSetup;
+  document.querySelectorAll("#setupWho button").forEach(b=>b.onclick=()=>setSeg("setupWho","who",b.dataset.who));
+
+  // list delegation (edit / delete)
+  el("list").addEventListener("click",(ev)=>{
+    const del=ev.target.closest("[data-del]");
+    if(del){ editingId=del.dataset.del; deleteExpense(); return; }
+    const ed=ev.target.closest("[data-edit]");
+    if(ed){ openExpense(ed.dataset.edit); }
+  });
+
+  // tap outside sheet to close expense modal
+  el("expOverlay").addEventListener("click",(ev)=>{ if(ev.target===el("expOverlay")) hideOverlay("expOverlay"); });
+}
+
+async function start(){
+  el("rateInput").value=state.rate;
+  render();
+  setSync("syncing","불러오는 중…");
+  await poll();                          // initial load
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer=setInterval(poll,POLL_MS);
+}
+
+function init(){
+  bindEvents();
+  el("fDate").value=todayISO();
+  if(needSetup()){
+    setSync("off","설정 필요");
+    render();
+    openSetup();
+  }else{
+    start();
+  }
+}
+init();
+</script>
+</body>
+</html>
