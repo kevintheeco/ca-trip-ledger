@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 여행 장부 데이터만 링크로 자유롭게 읽고 쓰기 허용.
+    // 이 프로젝트에는 이 데이터 외엔 아무것도 없음(니가교수와 완전 분리).
+    match /trips/{docId=**} {
+      allow read, write: if true;
+    }
+  }
+}
