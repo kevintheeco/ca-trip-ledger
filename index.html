@@ -242,7 +242,8 @@
       <span class="stop">그랜드캐니언</span>
     </div>
     <div class="toolbar">
-      <button id="btnCopy">📋 카톡 공유용 복사</button>
+      <button id="btnCopy">📋 정산 복사</button>
+      <button id="btnInvite">🔗 초대링크</button>
       <button id="btnSettings">⚙️ 설정</button>
       <span class="sync-pill"><span class="sync-dot" id="syncDot"></span><span id="syncTxt">연결 중…</span></span>
     </div>
@@ -672,6 +673,38 @@ function summaryText(){
   }
   return L.join("\n");
 }
+/* ---- invite link: token travels IN the link (not in the repo) ---- */
+function buildInvite(){
+  const payload = btoa(JSON.stringify({g:cfg.gist,t:cfg.token}));
+  return location.origin + location.pathname + "#i=" + payload;
+}
+async function copyInvite(){
+  if(!cfg.gist||!cfg.token){ toast("먼저 설정에서 연결해주세요"); openSetup(); return; }
+  const link = buildInvite();
+  try{
+    await navigator.clipboard.writeText(link);
+    toast("초대링크 복사됨 — 승연에게 보내세요 🔗");
+  }catch(e){
+    const ta=document.createElement("textarea"); ta.value=link; document.body.appendChild(ta);
+    ta.select(); try{document.execCommand("copy"); toast("초대링크 복사됨 🔗");}catch(_){toast("복사 실패");}
+    document.body.removeChild(ta);
+  }
+}
+/* If arrived via an invite link, auto-configure and clean the URL. */
+function consumeInvite(){
+  const h=location.hash;
+  if(!h.startsWith("#i=")) return;
+  try{
+    const o=JSON.parse(atob(h.slice(3)));
+    if(o.g && o.t){
+      localStorage.setItem(LS.gist,o.g);
+      localStorage.setItem(LS.token,o.t);
+      if(!localStorage.getItem(LS.who)) localStorage.setItem(LS.who,"승연");
+    }
+  }catch(e){}
+  history.replaceState(null,"",location.pathname+location.search);
+}
+
 async function copySummary(){
   const txt=summaryText();
   try{
@@ -820,6 +853,7 @@ function onRateChange(){
 function bindEvents(){
   el("btnAdd").onclick=()=>openExpense(null);
   el("btnCopy").onclick=copySummary;
+  el("btnInvite").onclick=copyInvite;
   el("btnSettings").onclick=openSetup;
   el("btnReset").onclick=resetAll;
   el("rateInput").addEventListener("input",onRateChange);
@@ -859,6 +893,7 @@ async function start(){
 
 function init(){
   bindEvents();
+  consumeInvite();               // auto-configure if opened via an invite link
   el("fDate").value=todayISO();
   if(needSetup()){
     setSync("off","설정 필요");
