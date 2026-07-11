@@ -139,6 +139,51 @@
 
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--pine);color:var(--sand);padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.28s;z-index:80;max-width:90vw;text-align:center;border-left:4px solid var(--gold);}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ===== 탭 바 ===== */
+  .tabbar{max-width:820px;margin:0 auto;padding:12px 16px 0;display:flex;gap:8px;}
+  .tabbar button{flex:1;padding:12px 10px;border-radius:13px;font-weight:700;font-size:14px;background:#fff;color:#8a8070;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:var(--shadow);transition:.12s;}
+  .tabbar button:active{transform:translateY(1px);}
+  .tabbar button.on{background:var(--pine);color:var(--sand);border-color:var(--pine);}
+  .tabbar .t-ic{font-size:16px;}
+
+  /* ===== 여행 일정 ===== */
+  .itin-wrap{max-width:820px;margin:0 auto;padding:0 12px 120px;}
+  .trip-facts{background:var(--pine-2);color:var(--sand);border-radius:16px;padding:15px 16px;margin-top:16px;box-shadow:var(--shadow);}
+  .trip-facts .tf-cap{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:11px;}
+  .tf-row{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid rgba(242,233,216,.12);}
+  .tf-row:first-of-type{border-top:none;}
+  .tf-ic{font-size:19px;flex:none;width:26px;text-align:center;line-height:1.3;}
+  .tf-row b{font-size:14px;color:var(--sand);}
+  .tf-row .tf-when{font-family:var(--mono);color:var(--gold);font-weight:600;font-size:13px;}
+  .tf-row .tf-sub{display:block;font-size:11.5px;color:#c1b79f;margin-top:2px;line-height:1.45;}
+  .tf-warn{color:#e8b23d;font-weight:600;}
+
+  .itin-hint{font-size:12px;color:#8a8070;text-align:center;margin:14px 4px 0;line-height:1.5;}
+  .day-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:15px;overflow:hidden;}
+  .dc-head{display:flex;align-items:baseline;gap:9px;padding:13px 15px 11px;background:var(--sand);border-bottom:1px solid var(--line);}
+  .dc-head .dc-date{font-family:var(--serif);font-weight:600;font-size:16px;}
+  .dc-head .dc-dow{font-size:12.5px;color:#8a8070;font-weight:600;}
+  .dc-head .dc-hint{margin-left:auto;font-size:11.5px;color:#a2937a;text-align:right;max-width:52%;}
+  .itin-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.itin{border-collapse:collapse;width:100%;min-width:660px;}
+  table.itin th{background:#fbf3e2;color:#6b6152;font-size:11px;font-weight:700;text-align:left;padding:8px 11px;letter-spacing:.02em;white-space:nowrap;border-bottom:1px solid var(--line);position:sticky;top:0;}
+  table.itin td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid rgba(28,43,36,.06);vertical-align:top;}
+  table.itin td:last-child{border-right:none;}
+  .cell{padding:9px 11px;min-height:40px;outline:none;font-size:13px;line-height:1.45;min-width:96px;cursor:text;word-break:break-word;}
+  .cell:focus{background:#fff9e9;box-shadow:inset 0 0 0 2px var(--gold);border-radius:6px;}
+  .cell:empty:before{content:attr(data-ph);color:#c3baa8;pointer-events:none;}
+  .cell.c-time{font-family:var(--mono);font-weight:600;min-width:66px;max-width:82px;white-space:nowrap;color:var(--clay);}
+  .cell.c-act{min-width:150px;font-weight:600;}
+  .cell.c-notes{min-width:130px;}
+  tr.locked td{background:rgba(232,178,61,.09);}
+  tr.locked .cell.c-act{color:var(--pine);}
+  tr.locked .cell.c-act:before{content:"📌 ";}
+  td.rowdel{width:34px;min-width:34px;padding:0;text-align:center;}
+  td.rowdel button{width:28px;height:28px;border-radius:7px;color:#c3baa8;font-size:15px;}
+  td.rowdel button:hover{background:#f4ede0;color:var(--clay);}
+  .dc-add{width:100%;padding:11px;font-size:13px;font-weight:600;color:var(--sage);background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;}
+  .dc-add:hover{background:#f6faf7;}
 </style>
 </head>
 <body>
@@ -148,10 +193,10 @@
     <span class="badge">California Road Trip · 2026</span>
     <h1 class="title">캘리포니아 여행 <em>정산 장부</em></h1>
     <div class="route">
-      <span class="stop">SF</span><span class="dot">·</span>
-      <span class="stop">요세미티</span><span class="dot">·</span>
+      <span class="stop">샌프란시스코</span><span class="dot">·</span>
+      <span class="stop">LA</span><span class="dot">·</span>
       <span class="stop">라스베가스</span><span class="dot">·</span>
-      <span class="stop">그랜드캐니언</span>
+      <span class="stop">8/8–8/13</span>
     </div>
     <div class="toolbar">
       <button id="btnCopy">📋 정산 복사</button>
@@ -161,7 +206,12 @@
   </div>
 </header>
 
-<main class="wrap">
+<nav class="tabbar">
+  <button id="tabItin" class="on"><span class="t-ic">🗺️</span>여행 일정</button>
+  <button id="tabLedger"><span class="t-ic">🧾</span>정산 장부</button>
+</nav>
+
+<main class="wrap hidden" id="ledgerMain">
   <section class="summary" id="summary">
     <div class="cap">실시간 정산</div>
     <div class="verdict" id="verdict">기록을 추가하면 정산 결과가 나와요.</div>
@@ -206,6 +256,31 @@
   <div class="footer-actions" id="footerActions" style="display:none">
     <button class="reset-btn" id="btnReset">🗑 전체 기록 초기화</button>
   </div>
+</main>
+
+<main class="itin-wrap" id="itinMain">
+  <div class="trip-facts">
+    <div class="tf-cap">여행 핵심 예약</div>
+    <div class="tf-row">
+      <span class="tf-ic">🚗</span>
+      <div><b>렌트카 픽업</b> · <span class="tf-when">8/8(토) 14:30</span>
+        <span class="tf-sub">San Francisco Intl Airport (SFO) · 780 McDonnell Road, SF, CA 94128 · 영업 24시간<br>여권 · 국제운전면허증 · 예약자 명의 신용카드 지참</span></div>
+    </div>
+    <div class="tf-row">
+      <span class="tf-ic">🏁</span>
+      <div><b>렌트카 반납</b> · <span class="tf-when">8/13(목) 11:00</span>
+        <span class="tf-sub">Las Vegas Harry Reid Intl Airport (LAS) · 7135 Gilespie Street, Las Vegas, NV 89119 · 영업 24시간<br>반납 전 주유(Full) 권장 · 개인짐 확인</span></div>
+    </div>
+    <div class="tf-row">
+      <span class="tf-ic">✈️</span>
+      <div><b>귀국편</b> · <span class="tf-when">LAX 10:50 출발</span> (LA → 한국)
+        <span class="tf-sub"><span class="tf-warn">★ 확인 필요</span> — 라스베가스 반납(8/13) 후 LA(LAX)까지 이동 방법과 정확한 출국 날짜. 아래 표에서 셀을 눌러 바로 고칠 수 있어요.</span></div>
+    </div>
+  </div>
+
+  <p class="itin-hint">칸을 <b>탭하면 바로 입력·수정</b>돼요. 둘이 실시간으로 같이 채울 수 있어요. 📌 표시는 미리 넣어둔 예약이에요.</p>
+
+  <div id="itinList"></div>
 </main>
 
 <!-- 첫 방문: 나는 누구? -->
@@ -275,8 +350,37 @@ const FIREBASE_CONFIG = {
 const LS_WHO = "catrip_who";
 const CATEGORIES = {"숙소":"🏨","교통":"🚗","식비":"🍔","입장료·액티비티":"🎟️","쇼핑":"🛍️","기타":"📌"};
 
-let db=null, itemsCol=null, mainDoc=null;
-let state = { expenses:[], rate:1400 };
+let db=null, itemsCol=null, mainDoc=null, itinCol=null;
+let state = { expenses:[], rate:1400, itin:[], itinSeeded:false };
+let seedTried=false, pendingItin=false;
+const LS_TAB = "catrip_tab";
+
+/* 여행 기간: 8/8(토) ~ 8/13(목) */
+const ITIN_DAYS = ["2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13"];
+const DAY_HINT = {
+  "2026-08-08":"샌프란시스코 · 렌트 픽업",
+  "2026-08-09":"이동일 · SF → 남부",
+  "2026-08-10":"로스앤젤레스",
+  "2026-08-11":"LA → 라스베가스",
+  "2026-08-12":"라스베가스",
+  "2026-08-13":"렌트 반납 · 귀국"
+};
+/* 미리 채워둘 예약·뼈대 (id 고정 → 중복 시드 방지) */
+function ITIN_SEED(){
+  const S=(id,date,time,activity,transport,lodging,cost,notes,locked)=>(
+    {id,date,time,activity,transport,lodging,cost,notes,locked:!!locked,_t:parseInt(id.slice(1),10)});
+  return [
+    S("s01","2026-08-08","14:30","🚗 렌트카 픽업 · SFO 공항","공항 셔틀 → 렌터카 센터","","(렌트비 별도)","San Francisco Intl · 780 McDonnell Rd · 24시간 · 여권/국제면허/신용카드",true),
+    S("s02","2026-08-08","","샌프란시스코 시내 (금문교·피셔맨스워프)","렌트카","샌프란시스코 1박","","",false),
+    S("s03","2026-08-09","","샌프란시스코 → 남부 해안 이동","렌트카 (1번 해안도로/5번)","","","몬터레이·빅서 경유 옵션",false),
+    S("s04","2026-08-10","","로스앤젤레스 (산타모니카·할리우드)","렌트카","LA 1박","","",false),
+    S("s05","2026-08-11","","LA → 라스베가스 이동","렌트카 (15번, 약 4시간)","라스베가스 1박","","중간 아울렛 들르기 좋음",false),
+    S("s06","2026-08-12","","라스베가스 (스트립·쇼)","도보/렌트카","라스베가스 1박","","그랜드캐니언 당일투어 옵션",false),
+    S("s07","2026-08-13","11:00","🏁 렌트카 반납 · 라스베가스 공항","렌트카","","(반납)","Harry Reid Intl · 7135 Gilespie St · 24시간 · 주유 후 반납",true),
+    S("s08","2026-08-13","10:50","✈️ 귀국편 · LAX 출발 (LA→한국)","","","","★확인: 라스베가스 반납 후 LA 이동 방법·정확한 출국일 (반납 11:00과 시간 겹침)",true)
+  ];
+}
+
 let who = "수민";
 let editingId = null;
 let form = null;
@@ -301,6 +405,7 @@ function connect(){
   try{ db.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
   mainDoc  = db.collection("trips").doc("main");
   itemsCol = mainDoc.collection("items");
+  itinCol  = mainDoc.collection("itin");
   setSync("syncing","동기화 중…");
 
   // 지출 항목 실시간 구독
@@ -310,15 +415,37 @@ function connect(){
     if(!snap.metadata.hasPendingWrites) setSync("","동기화됨");
   }, (err)=>{ console.error(err); setSync("err","연결 오류"); });
 
-  // 환율 실시간 구독
+  // 여행 일정 실시간 구독
+  itinCol.onSnapshot((snap)=>{
+    state.itin = snap.docs.map(d=>d.data());
+    if(isEditingItin()){ pendingItin=true; } else { renderItin(); }
+    maybeSeedItin(snap);
+  }, (err)=>{ console.error(err); });
+
+  // 환율 + 시드 플래그 실시간 구독
   mainDoc.onSnapshot((doc)=>{
     const data = doc.data();
-    if(data && typeof data.rate==="number" && data.rate>0){
+    if(!data) return;
+    if(data.itinSeeded===true) state.itinSeeded=true;
+    if(typeof data.rate==="number" && data.rate>0){
       state.rate = data.rate;
       if(document.activeElement!==el("rateInput")) el("rateInput").value = state.rate;
       render();
     }
   }, (err)=>{ console.error(err); });
+}
+
+/* 처음 한 번만 예약·뼈대를 채운다 (id 고정 → 중복 없음) */
+function maybeSeedItin(snap){
+  if(seedTried) return;
+  if(snap.size>0 || state.itinSeeded){ seedTried=true; return; }
+  seedTried=true;
+  try{
+    const batch=db.batch();
+    ITIN_SEED().forEach(it=> batch.set(itinCol.doc(it.id), it));
+    batch.set(mainDoc,{itinSeeded:true},{merge:true});
+    batch.commit().catch(()=>{});
+  }catch(e){}
 }
 
 function saveItem(item){
@@ -407,6 +534,91 @@ const DOW=["일","월","화","수","목","금","토"];
 function fmtDate(iso){ const [y,m,d]=iso.split("-"); return `${+m}월 ${+d}일`; }
 function dow(iso){ const dt=new Date(iso+"T00:00:00"); return "("+DOW[dt.getDay()]+")"; }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ============================================================
+   ITINERARY (여행 일정 표) — trips/main/itin/{id}
+   ============================================================ */
+function isEditingItin(){ const a=document.activeElement; return !!(a && a.classList && a.classList.contains("cell")); }
+
+const ITIN_COLS = [
+  {f:"time",     cls:"c-time",  ph:"시간"},
+  {f:"activity", cls:"c-act",   ph:"무엇을 할까요?"},
+  {f:"transport",cls:"c-trans", ph:"이동수단"},
+  {f:"lodging",  cls:"c-lodge", ph:"숙소"},
+  {f:"cost",     cls:"c-cost",  ph:"비용"},
+  {f:"notes",    cls:"c-notes", ph:"참고사항"}
+];
+
+function renderItin(){
+  const wrap=el("itinList"); if(!wrap) return;
+  const groups={};
+  for(const it of state.itin){ (groups[it.date] ||= []).push(it); }
+  const dates=Array.from(new Set([...ITIN_DAYS, ...Object.keys(groups)])).sort();
+
+  let html="";
+  for(const d of dates){
+    const items=(groups[d]||[]).slice().sort((a,b)=>(a._t||0)-(b._t||0));
+    const hint=DAY_HINT[d]||"";
+    let rows="";
+    for(const it of items){
+      const cells=ITIN_COLS.map(c=>
+        `<td><div class="cell ${c.cls}" contenteditable="true" data-id="${it.id}" data-f="${c.f}" data-ph="${c.ph}">${esc(it[c.f]||"")}</div></td>`
+      ).join("");
+      rows+=`<tr class="${it.locked?"locked":""}" data-row="${it.id}">${cells}<td class="rowdel"><button data-del="${it.id}" aria-label="줄 삭제">✕</button></td></tr>`;
+    }
+    if(!rows){ rows=`<tr><td colspan="7" style="padding:14px 12px;color:#a2937a;font-size:12.5px;">아직 일정이 없어요. 아래 <b>+ 일정 추가</b>를 눌러 채워보세요.</td></tr>`; }
+    html+=`
+      <div class="day-card">
+        <div class="dc-head">
+          <span class="dc-date">${fmtDate(d)}</span>
+          <span class="dc-dow">${dow(d)}</span>
+          ${hint?`<span class="dc-hint">${esc(hint)}</span>`:""}
+        </div>
+        <div class="itin-scroll">
+          <table class="itin">
+            <thead><tr>
+              <th>시간</th><th>일정</th><th>이동수단</th><th>숙소</th><th>비용</th><th>참고사항</th><th></th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <button class="dc-add" data-add="${d}">＋ 일정 추가</button>
+      </div>`;
+  }
+  wrap.innerHTML=html;
+}
+
+let itinSaveT={};
+function saveItinField(id,field,value){
+  if(!itinCol) return;
+  clearTimeout(itinSaveT[id+field]);
+  itinSaveT[id+field]=setTimeout(()=>{
+    itinCol.doc(id).set({[field]:value},{merge:true}).catch(err=>toast("저장 실패: "+err.code));
+  },500);
+}
+function addItinRow(date){
+  if(!itinCol) return;
+  const it={id:uid(),date,time:"",activity:"",transport:"",lodging:"",cost:"",notes:"",locked:false,_t:Date.now()};
+  itinCol.doc(it.id).set(it).catch(err=>toast("추가 실패: "+err.code));
+}
+function delItinRow(id){
+  if(!itinCol) return;
+  if(!confirm("이 일정 줄을 삭제할까요?")) return;
+  itinCol.doc(id).delete().catch(err=>toast("삭제 실패: "+err.code));
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function switchTab(t){
+  const isItin = (t!=="ledger");
+  el("itinMain").classList.toggle("hidden",!isItin);
+  el("ledgerMain").classList.toggle("hidden",isItin);
+  el("tabItin").classList.toggle("on",isItin);
+  el("tabLedger").classList.toggle("on",!isItin);
+  localStorage.setItem(LS_TAB, isItin?"itin":"ledger");
+  window.scrollTo(0,0);
+}
 
 /* ============================================================
    COPY SUMMARY
@@ -518,6 +730,30 @@ function bindEvents(){
     const ed=ev.target.closest("[data-edit]"); if(ed){ openExpense(ed.dataset.edit); }
   });
   el("expOverlay").addEventListener("click",(ev)=>{ if(ev.target===el("expOverlay")) hide("expOverlay"); });
+
+  // 탭
+  el("tabItin").onclick=()=>switchTab("itin");
+  el("tabLedger").onclick=()=>switchTab("ledger");
+
+  // 여행 일정 표 편집
+  const itinList=el("itinList");
+  itinList.addEventListener("input",(ev)=>{
+    const c=ev.target.closest(".cell"); if(!c) return;
+    saveItinField(c.dataset.id, c.dataset.f, c.textContent.trim());
+  });
+  itinList.addEventListener("focusout",(ev)=>{
+    const c=ev.target.closest(".cell");
+    if(c){
+      clearTimeout(itinSaveT[c.dataset.id+c.dataset.f]);
+      if(itinCol) itinCol.doc(c.dataset.id).set({[c.dataset.f]:c.textContent.trim()},{merge:true}).catch(()=>{});
+    }
+    // 편집 끝 → 밀린 원격 변경 반영
+    setTimeout(()=>{ if(pendingItin && !isEditingItin()){ pendingItin=false; renderItin(); } },50);
+  });
+  itinList.addEventListener("click",(ev)=>{
+    const del=ev.target.closest("[data-del]"); if(del){ delItinRow(del.dataset.del); return; }
+    const add=ev.target.closest("[data-add]"); if(add){ addItinRow(add.dataset.add); return; }
+  });
 }
 
 function init(){
@@ -526,7 +762,9 @@ function init(){
   el("rateInput").value=state.rate;
   who = localStorage.getItem(LS_WHO) || "";
   if(!who){ who="수민"; openWho(); }   // 첫 방문 — 이름만 한 번
+  switchTab(localStorage.getItem(LS_TAB)==="ledger" ? "ledger" : "itin");
   render();
+  renderItin();
   connect();
 }
 init();
