@@ -209,7 +209,7 @@
       <span class="stop">샌프란시스코</span><span class="dot">·</span>
       <span class="stop">LA</span><span class="dot">·</span>
       <span class="stop">라스베가스</span><span class="dot">·</span>
-      <span class="stop">8/8–8/13</span>
+      <span class="stop">8/7–8/14</span>
     </div>
     <div class="toolbar">
       <button id="btnCopy">📋 정산 복사</button>
@@ -276,8 +276,13 @@
     <div class="tf-cap">여행 핵심 예약</div>
     <div class="tf-row">
       <span class="tf-ic">🚗</span>
-      <div><b>렌트카 픽업</b> · <span class="tf-when">8/8(토) 14:30</span>
+      <div><b>렌트카 픽업</b> · <span class="tf-when">8/7(금) 14:30</span>
         <span class="tf-sub">San Francisco Intl Airport (SFO) · 780 McDonnell Road, SF, CA 94128 · 영업 24시간<br>여권 · 국제운전면허증 · 예약자 명의 신용카드 지참</span></div>
+    </div>
+    <div class="tf-row">
+      <span class="tf-ic">⚾</span>
+      <div><b>자이언츠 야구</b> · <span class="tf-when">8/7(금) 19:15</span> <span class="tf-warn">예약완료</span>
+        <span class="tf-sub">Oracle Park · 24 Willie Mays Plaza, San Francisco, CA 94107 · SF 다운타운 워터프론트</span></div>
     </div>
     <div class="tf-row">
       <span class="tf-ic">🏁</span>
@@ -374,9 +379,10 @@ let seedTried=false, pendingItin=false, lodgingLoaded=false, lodgeSeedTried=fals
 const LS_TAB = "catrip_tab";
 
 /* 여행 기간: 8/8(토) ~ 8/14(금, 귀국) */
-const ITIN_DAYS = ["2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14"];
+const ITIN_DAYS = ["2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14"];
 const DAY_HINT = {
-  "2026-08-08":"샌프란시스코 · 렌트 픽업",
+  "2026-08-07":"샌프란시스코 도착 · 렌트 픽업 · 자이언츠 야구",
+  "2026-08-08":"샌프란시스코 시내",
   "2026-08-09":"이동일 · SF → 남부",
   "2026-08-10":"로스앤젤레스",
   "2026-08-11":"LA → 라스베가스",
@@ -389,7 +395,8 @@ function ITIN_SEED(){
   const S=(id,date,time,activity,transport,lodging,cost,notes,locked)=>(
     {id,date,time,activity,transport,lodging,cost,notes,locked:!!locked,_t:parseInt(id.slice(1),10)});
   return [
-    S("s01","2026-08-08","14:30","🚗 렌트카 픽업 · SFO 공항","공항 셔틀 → 렌터카 센터","","(렌트비 별도)","San Francisco Intl · 780 McDonnell Rd · 24시간 · 여권/국제면허/신용카드",true),
+    S("s01","2026-08-07","14:30","🚗 렌트카 픽업 · SFO 공항","공항 셔틀 → 렌터카 센터","","(렌트비 별도)","San Francisco Intl · 780 McDonnell Rd · 24시간 · 여권/국제면허/신용카드",true),
+    S("s0b","2026-08-07","19:15","⚾ 오라클 파크 자이언츠 야구 (예약완료)","","","","SF 오라클 파크 · 예약 완료",true),
     S("s02","2026-08-08","","샌프란시스코 시내 (금문교·피셔맨스워프)","렌트카","샌프란시스코 1박","","",false),
     S("s03","2026-08-09","","샌프란시스코 → 남부 해안 이동","렌트카 (1번 해안도로/5번)","","","몬터레이·빅서 경유 옵션",false),
     S("s04","2026-08-10","","로스앤젤레스 (산타모니카·할리우드)","렌트카","LA 1박","","",false),
