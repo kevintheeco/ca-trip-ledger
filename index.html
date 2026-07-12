@@ -184,6 +184,19 @@
   td.rowdel button:hover{background:#f4ede0;color:var(--clay);}
   .dc-add{width:100%;padding:11px;font-size:13px;font-weight:600;color:var(--sage);background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;}
   .dc-add:hover{background:#f6faf7;}
+
+  /* ===== 날짜별 숙소 ===== */
+  .lodging{border-top:1px solid var(--line);background:#fbf7ee;padding:12px 15px 15px;}
+  .lodging.none{color:#a2937a;font-size:12.5px;font-weight:600;text-align:center;padding:14px;background:#faf6ec;}
+  .lodge-head{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-weight:600;font-size:14px;color:var(--pine);margin-bottom:11px;}
+  .lodge-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+  .lodge-field{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .lodge-field.wide{grid-column:1 / -1;}
+  .lodge-field label{font-size:11px;font-weight:700;color:#8a8070;letter-spacing:.02em;}
+  .lodge-field .lcell{padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:13.5px;line-height:1.45;min-height:38px;outline:none;word-break:break-word;cursor:text;}
+  .lodge-field .lcell:focus{border-color:var(--sage);background:#fff9e9;box-shadow:0 0 0 3px rgba(74,122,100,.14);}
+  .lodge-field .lcell:empty:before{content:attr(data-ph);color:#c3baa8;pointer-events:none;}
+  @media(max-width:520px){ .lodge-grid{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -355,9 +368,9 @@ const FIREBASE_CONFIG = {
 const LS_WHO = "catrip_who";
 const CATEGORIES = {"숙소":"🏨","교통":"🚗","식비":"🍔","입장료·액티비티":"🎟️","쇼핑":"🛍️","기타":"📌"};
 
-let db=null, itemsCol=null, mainDoc=null, itinCol=null;
-let state = { expenses:[], rate:1400, itin:[], itinSeeded:false };
-let seedTried=false, pendingItin=false;
+let db=null, itemsCol=null, mainDoc=null, itinCol=null, lodgingCol=null;
+let state = { expenses:[], rate:1400, itin:[], itinSeeded:false, lodging:{}, lodgingSeeded:false };
+let seedTried=false, pendingItin=false, lodgingLoaded=false, lodgeSeedTried=false;
 const LS_TAB = "catrip_tab";
 
 /* 여행 기간: 8/8(토) ~ 8/14(금, 귀국) */
@@ -414,6 +427,7 @@ function connect(){
   mainDoc  = db.collection("trips").doc("main");
   itemsCol = mainDoc.collection("items");
   itinCol  = mainDoc.collection("itin");
+  lodgingCol = mainDoc.collection("lodging");
   setSync("syncing","동기화 중…");
 
   // 지출 항목 실시간 구독
@@ -428,6 +442,15 @@ function connect(){
     state.itin = snap.docs.map(d=>d.data());
     if(isEditingItin()){ pendingItin=true; } else { renderItin(); }
     maybeSeedItin(snap);
+    maybeSeedLodging();
+  }, (err)=>{ console.error(err); });
+
+  // 날짜별 숙소 실시간 구독
+  lodgingCol.onSnapshot((snap)=>{
+    const m={}; snap.docs.forEach(d=> m[d.id]=d.data());
+    state.lodging=m; lodgingLoaded=true;
+    if(isEditingItin()){ pendingItin=true; } else { renderItin(); }
+    maybeSeedLodging();
   }, (err)=>{ console.error(err); });
 
   // 환율 + 시드 플래그 실시간 구독
@@ -435,6 +458,7 @@ function connect(){
     const data = doc.data();
     if(!data) return;
     if(data.itinSeeded===true) state.itinSeeded=true;
+    if(data.lodgingSeeded===true){ state.lodgingSeeded=true; maybeSeedLodging(); }
     if(typeof data.rate==="number" && data.rate>0){
       state.rate = data.rate;
       if(document.activeElement!==el("rateInput")) el("rateInput").value = state.rate;
@@ -452,6 +476,27 @@ function maybeSeedItin(snap){
     const batch=db.batch();
     ITIN_SEED().forEach(it=> batch.set(itinCol.doc(it.id), it));
     batch.set(mainDoc,{itinSeeded:true},{merge:true});
+    batch.commit().catch(()=>{});
+  }catch(e){}
+}
+
+/* 날짜별 숙소 뼈대를 한 번만 만든다. 기존 일정 줄의 lodging 값을 숙소 이름으로 이관. */
+function maybeSeedLodging(){
+  if(lodgeSeedTried) return;
+  if(!lodgingLoaded) return;                                   // 숙소 컬렉션 상태 확인 전엔 대기
+  if(Object.keys(state.lodging).length>0 || state.lodgingSeeded){ lodgeSeedTried=true; return; }
+  if(state.itin.length===0) return;                            // 기존 숙소명 이관 위해 일정 로드 대기
+  lodgeSeedTried=true;
+  try{
+    const last=ITIN_DAYS[ITIN_DAYS.length-1];
+    const nameByDate={};
+    for(const it of state.itin){ if(it.lodging && !nameByDate[it.date]) nameByDate[it.date]=it.lodging; }
+    const batch=db.batch();
+    for(const d of ITIN_DAYS){
+      if(d===last) continue;                                   // 마지막 날(귀국)은 숙박 없음
+      batch.set(lodgingCol.doc(d),{date:d,name:nameByDate[d]||"",address:"",cost:"",parking:"",note:""});
+    }
+    batch.set(mainDoc,{lodgingSeeded:true},{merge:true});
     batch.commit().catch(()=>{});
   }catch(e){}
 }
@@ -546,16 +591,36 @@ function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">
 /* ============================================================
    ITINERARY (여행 일정 표) — trips/main/itin/{id}
    ============================================================ */
-function isEditingItin(){ const a=document.activeElement; return !!(a && a.classList && a.classList.contains("cell")); }
+function isEditingItin(){ const a=document.activeElement; return !!(a && a.classList && (a.classList.contains("cell")||a.classList.contains("lcell"))); }
 
 const ITIN_COLS = [
   {f:"time",     cls:"c-time",  ph:"시간"},
   {f:"activity", cls:"c-act",   ph:"무엇을 할까요?"},
   {f:"transport",cls:"c-trans", ph:"이동수단"},
-  {f:"lodging",  cls:"c-lodge", ph:"숙소"},
   {f:"cost",     cls:"c-cost",  ph:"비용"},
   {f:"notes",    cls:"c-notes", ph:"참고사항"}
 ];
+
+/* 날짜별 숙소 칸 정의 (표 열이 아니라 카드 하단 블록) */
+const LODGE_FIELDS = [
+  {f:"name",    label:"숙소 이름", ph:"예: 힐튼 가든 인",       wide:true},
+  {f:"address", label:"주소",     ph:"주소 입력",              wide:true},
+  {f:"cost",    label:"1박 비용",  ph:"예: $150",               wide:false},
+  {f:"parking", label:"주차",      ph:"예: 무료 / 유료 $30",     wide:false},
+  {f:"note",    label:"메모",      ph:"체크인 시간·예약 링크 등", wide:true}
+];
+function lodgingPanelHTML(d){
+  const last=ITIN_DAYS[ITIN_DAYS.length-1];
+  if(d===last) return `<div class="lodging none">✈️ 귀국일 · 숙박 없음</div>`;
+  const L=state.lodging[d]||{};
+  const fields=LODGE_FIELDS.map(f=>
+    `<div class="lodge-field${f.wide?" wide":""}">
+       <label>${f.label}</label>
+       <div class="lcell" contenteditable="true" data-date="${d}" data-lf="${f.f}" data-ph="${f.ph}">${esc(L[f.f]||"")}</div>
+     </div>`
+  ).join("");
+  return `<div class="lodging"><div class="lodge-head">🏨 숙소</div><div class="lodge-grid">${fields}</div></div>`;
+}
 
 function renderItin(){
   const wrap=el("itinList"); if(!wrap) return;
@@ -574,7 +639,7 @@ function renderItin(){
       ).join("");
       rows+=`<tr class="${it.locked?"locked":""}" data-row="${it.id}">${cells}<td class="rowdel"><button data-del="${it.id}" aria-label="줄 삭제">✕</button></td></tr>`;
     }
-    if(!rows){ rows=`<tr><td colspan="7" style="padding:14px 12px;color:#a2937a;font-size:12.5px;">아직 일정이 없어요. 아래 <b>+ 일정 추가</b>를 눌러 채워보세요.</td></tr>`; }
+    if(!rows){ rows=`<tr><td colspan="6" style="padding:14px 12px;color:#a2937a;font-size:12.5px;">아직 일정이 없어요. 아래 <b>+ 일정 추가</b>를 눌러 채워보세요.</td></tr>`; }
     html+=`
       <div class="day-card">
         <div class="dc-head">
@@ -585,12 +650,13 @@ function renderItin(){
         <div class="itin-scroll">
           <table class="itin">
             <thead><tr>
-              <th>시간</th><th>일정</th><th>이동수단</th><th>숙소</th><th>비용</th><th>참고사항</th><th></th>
+              <th>시간</th><th>일정</th><th>이동수단</th><th>비용</th><th>참고사항</th><th></th>
             </tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
         <button class="dc-add" data-add="${d}">＋ 일정 추가</button>
+        ${lodgingPanelHTML(d)}
       </div>`;
   }
   wrap.innerHTML=html;
@@ -602,6 +668,14 @@ function saveItinField(id,field,value){
   clearTimeout(itinSaveT[id+field]);
   itinSaveT[id+field]=setTimeout(()=>{
     itinCol.doc(id).set({[field]:value},{merge:true}).catch(err=>toast("저장 실패: "+err.code));
+  },500);
+}
+let lodgeSaveT={};
+function saveLodgingField(date,field,value){
+  if(!lodgingCol) return;
+  clearTimeout(lodgeSaveT[date+field]);
+  lodgeSaveT[date+field]=setTimeout(()=>{
+    lodgingCol.doc(date).set({[field]:value,date},{merge:true}).catch(err=>toast("저장 실패: "+err.code));
   },500);
 }
 function addItinRow(date){
@@ -746,10 +820,17 @@ function bindEvents(){
   // 여행 일정 표 편집
   const itinList=el("itinList");
   itinList.addEventListener("input",(ev)=>{
+    const l=ev.target.closest(".lcell");
+    if(l){ saveLodgingField(l.dataset.date, l.dataset.lf, l.textContent.trim()); return; }
     const c=ev.target.closest(".cell"); if(!c) return;
     saveItinField(c.dataset.id, c.dataset.f, c.textContent.trim());
   });
   itinList.addEventListener("focusout",(ev)=>{
+    const l=ev.target.closest(".lcell");
+    if(l){
+      clearTimeout(lodgeSaveT[l.dataset.date+l.dataset.lf]);
+      if(lodgingCol) lodgingCol.doc(l.dataset.date).set({[l.dataset.lf]:l.textContent.trim(),date:l.dataset.date},{merge:true}).catch(()=>{});
+    }
     const c=ev.target.closest(".cell");
     if(c){
       clearTimeout(itinSaveT[c.dataset.id+c.dataset.f]);
